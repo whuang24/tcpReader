@@ -27,8 +27,12 @@ def parse_pcap(file_path):
         
         # Extract packets
         while True:
-            # Reads the packet header, and ends if the packet header length is incorrect
+            # Reads the packet header, and ends checking if the packet_header does not exist
             packet_header = f.read(16)
+            if not packet_header:
+                break
+
+            # Skips over incomplete packet header if it is incomplete
             if len(packet_header) < 16:
                 continue
             

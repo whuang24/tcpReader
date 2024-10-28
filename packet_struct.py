@@ -188,13 +188,13 @@ class Packet_Data():
         self.RTT_value = round(rtt,8)
 
 class Connection:
-    def __init__(self, src_ip, src_port, dst_ip, dst_port, start_time, end_time, status, flags):
+    def __init__(self, src_ip, src_port, dst_ip, dst_port, timestamp, status):
         self.src_ip = src_ip
         self.dst_ip = dst_ip
         self.src_port = src_port
         self.dst_port = dst_port
         self.status = status
-        self.start_time = start_time
+        self.start_time = timestamp
         self.end_time = None
         self.packets_src_to_dst = 0
         self.packets_dst_to_src = 0

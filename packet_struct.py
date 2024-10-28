@@ -188,7 +188,7 @@ class Packet_Data():
         self.RTT_value = round(rtt,8)
 
 class Connection:
-    def __init__(self, src_ip, src_port, dst_ip, dst_port, start_time, end_time, status):
+    def __init__(self, src_ip, src_port, dst_ip, dst_port, start_time, end_time, status, flags):
         self.src_ip = src_ip
         self.dst_ip = dst_ip
         self.src_port = src_port
@@ -201,8 +201,9 @@ class Connection:
         self.data_src_to_dst = 0
         self.data_dst_to_src = 0
 
-    def record_packet(self, src_ip, dst_ip, data_length, timestamp):
+    def record_packet(self, src_ip, dst_ip, data_length, timestamp, status):
         self.end_time = timestamp
+        self.status = status
         if src_ip == self.src_ip and dst_ip == self.dst_ip:
             self.packets_src_to_dst += 1
             self.data_src_to_dst += data_length

@@ -7,6 +7,8 @@ connections = {}
 # Helper function to parse pcap file headers
 def parse_pcap(file_path):
     with open(file_path, 'rb') as f:
+
+        # Obtaining global header and identifying big/small endianese
         global_header = f.read(24)
 
         magic_number = global_header[:4]
@@ -17,23 +19,28 @@ def parse_pcap(file_path):
             ordering = "<"
         else:
             raise ValueError("Unsupported pcap format")
+
+        # Initialize counters
+        syn_count = 0
+        fin_count = 0
+        rst_flag = False
         
         # Extract packets
-        packets = []
-        packet_no = 1
-
         while True:
+            # Reads the packet header, and ends if the packet header length is incorrect
             packet_header = f.read(16)
             if len(packet_header) < 16:
-                break
+                continue
             
             ts_sec, ts_usec, incl_len, orig_len = struct.unpack(ordering + 'IIII', packet_header)
             timestamp = ts_sec + ts_usec * 1e-6
 
+            # Reads the packet data
             packet_data = f.read(incl_len)
             if len(packet_data) < incl_len:
-                break
+                continue
 
+            # Reads the IP header
             ip_header = IP_Header()
             ip_header.get_IP(packet_data[26:30], packet_data[30:34])
             ip_header.get_header_len(packet_data[14:15])
@@ -41,6 +48,7 @@ def parse_pcap(file_path):
             source_ip = ip_header.src_ip
             dest_ip = ip_header.dst_ip
 
+            # Reads the TCP header
             tcp_header = TCP_Header()
             tcp_header.get_src_port(packet_data[34:36])
             tcp_header.get_dst_port(packet_data[36:38])
@@ -72,12 +80,13 @@ def parse_pcap(file_path):
             if connection_id not in connections:
                 connections[connection_id] = Connection(source_ip, source_port, dest_ip, dest_port, timestamp, status)
 
+                #Resetting the syn_count, fin_count, and rst_flag whenever a new packet header is detected
+                syn_count = 0
+                fin_count = 0
+                rst_flag = False
+
             connection = connections[connection_id]
-            connection.record_packet(source_ip, dest_ip, data_length, timestamp)
-
-            packet_no += 1
-
-    return packets
+            connection.record_packet(source_ip, dest_ip, data_length, timestamp, status)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

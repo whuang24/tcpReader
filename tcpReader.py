@@ -53,13 +53,13 @@ def parse_pcap(file_path):
             flags = tcp_header.flags
             data_length = incl_len - (14 + ip_header.ip_header_len + data_offset)
 
-            if flags & 0x02:
+            if flags["SYN"]:
                 syn_count += 1
 
-            if flags & 0x01: 
+            if flags["FIN"]: 
                 fin_count += 1
             
-            if flags & 0x04:
+            if flags["RST"]:
                 rst_flag = True
                 continue
         

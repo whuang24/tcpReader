@@ -211,7 +211,15 @@ class Connection:
             self.data_dst_to_src += data_length
 
     def generate_report(self, conn_id):
-        if self.status == "TERMINATED" and self.start_time and self.end_time:
+        if "R" in self.status:
+            return (f"Connection {conn_id}:\n"
+                        f"Source Address: {self.src_ip}\n"
+                        f"Destination Address: {self.dst_ip}\n"
+                        f"Source Port: {self.src_port}\n"
+                        f"Destination Port: {self.dst_port}\n"
+                        f"Status: {self.status}\nEND\n"
+                        f"++++++++++++++++++++++++++++++++")
+        if self.start_time and self.end_time:
             duration = round(self.end_time - self.start_time, 6)
             total_packets = self.packets_src_to_dst + self.packets_dst_to_src
             total_data = self.data_src_to_dst + self.data_dst_to_src
@@ -231,11 +239,4 @@ class Connection:
                     f"Number of data bytes sent from Destination to Source: {self.data_dst_to_src}\n"
                     f"Total number of data bytes: {total_data}\nEND\n"
                     f"++++++++++++++++++++++++++++++++")
-        else:
-            return (f"Connection {conn_id}:\n"
-                    f"Source Address: {self.src_ip}\n"
-                    f"Destination Address: {self.dst_ip}\n"
-                    f"Source Port: {self.src_port}\n"
-                    f"Destination Port: {self.dst_port}\n"
-                    f"Status: {self.status}\nEND\n"
-                    f"++++++++++++++++++++++++++++++++")
+            

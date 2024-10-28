@@ -70,7 +70,7 @@ def parse_pcap(file_path):
 
             connection_id = (source_ip, source_port, dest_ip, dest_port)
             if connection_id not in connections:
-                connections[connection_id] = Connection(source_ip, source_port, dest_ip, dest_port, timestamp, rst_flag)
+                connections[connection_id] = Connection(source_ip, source_port, dest_ip, dest_port, timestamp, status)
 
             connection = connections[connection_id]
             connection.record_packet(source_ip, dest_ip, data_length, timestamp)

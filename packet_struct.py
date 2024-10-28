@@ -152,7 +152,7 @@ class TCP_Header:
             self.ack_num_set(relative_ack)
    
 
-class packet():
+class Packet_Data():
     
     #pcap_hd_info = None
     IP_header = None
@@ -186,3 +186,57 @@ class packet():
     def get_RTT_value(self,p):
         rtt = p.timestamp-self.timestamp
         self.RTT_value = round(rtt,8)
+
+class Connection:
+    def __init__(self, src_ip, src_port, dst_ip, dst_port, start_time, end_time, status):
+        self.src_ip = src_ip
+        self.dst_ip = dst_ip
+        self.src_port = src_port
+        self.dst_port = dst_port
+        self.status = status
+        self.start_time = start_time
+        self.end_time = None
+        self.packets_src_to_dst = 0
+        self.packets_dst_to_src = 0
+        self.data_src_to_dst = 0
+        self.data_dst_to_src = 0
+
+    def update_status(self, end_time):
+        self.end_time = end_time
+
+    def record_packet(self, src_ip, dst_ip, data_length, timestamp):
+        self.end_time = timestamp
+        if src_ip == self.src_ip and dst_ip == self.dst_ip:
+            self.packets_src_to_dst += 1
+            self.data_src_to_dst += data_length
+        elif src_ip == self.dst_ip and dst_ip == self.src_ip:
+            self.packets_dst_to_src += 1
+            self.data_dst_to_src += data_length
+
+    def generate_report(self, conn_id):
+        if self.status == "TERMINATED" and self.start_time and self.end_time:
+            duration = round(self.end_time - self.start_time, 6)
+            total_packets = self.packets_src_to_dst + self.packets_dst_to_src
+            total_data = self.data_src_to_dst + self.data_dst_to_src
+            return (f"Connection {conn_id}:\n"
+                    f"Source Address: {self.src_ip}\n"
+                    f"Destination Address: {self.dst_ip}\n"
+                    f"Source Port: {self.src_port}\n"
+                    f"Destination Port: {self.dst_port}\n"
+                    f"Status: {self.status}\n"
+                    f"Start Time: {self.start_time}\n"
+                    f"End Time: {self.end_time}\n"
+                    f"Duration: {duration} seconds\n"
+                    f"Number of packets sent from Source to Destination: {self.packets_src_to_dst}\n"
+                    f"Number of packets sent from Destination to Source: {self.packets_dst_to_src}\n"
+                    f"Total number of packets: {total_packets}\n"
+                    f"Number of data bytes sent from Source to Destination: {self.data_src_to_dst}\n"
+                    f"Number of data bytes sent from Destination to Source: {self.data_dst_to_src}\n"
+                    f"Total number of data bytes: {total_data}\nEND\n")
+        else:
+            return (f"Connection {conn_id}:\n"
+                    f"Source Address: {self.src_ip}\n"
+                    f"Destination Address: {self.dst_ip}\n"
+                    f"Source Port: {self.src_port}\n"
+                    f"Destination Port: {self.dst_port}\n"
+                    f"Status: {self.status}\nEND\n")

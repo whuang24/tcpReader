@@ -201,9 +201,6 @@ class Connection:
         self.data_src_to_dst = 0
         self.data_dst_to_src = 0
 
-    def update_status(self, end_time):
-        self.end_time = end_time
-
     def record_packet(self, src_ip, dst_ip, data_length, timestamp):
         self.end_time = timestamp
         if src_ip == self.src_ip and dst_ip == self.dst_ip:
@@ -232,11 +229,13 @@ class Connection:
                     f"Total number of packets: {total_packets}\n"
                     f"Number of data bytes sent from Source to Destination: {self.data_src_to_dst}\n"
                     f"Number of data bytes sent from Destination to Source: {self.data_dst_to_src}\n"
-                    f"Total number of data bytes: {total_data}\nEND\n")
+                    f"Total number of data bytes: {total_data}\nEND\n"
+                    f"++++++++++++++++++++++++++++++++")
         else:
             return (f"Connection {conn_id}:\n"
                     f"Source Address: {self.src_ip}\n"
                     f"Destination Address: {self.dst_ip}\n"
                     f"Source Port: {self.src_port}\n"
                     f"Destination Port: {self.dst_port}\n"
-                    f"Status: {self.status}\nEND\n")
+                    f"Status: {self.status}\nEND\n"
+                    f"++++++++++++++++++++++++++++++++")

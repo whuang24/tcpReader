@@ -19,6 +19,9 @@ def parse_pcap(file_path):
             ordering = "<"
         else:
             raise ValueError("Unsupported pcap format")
+        
+        packet_no = 0
+        start_time = 0
 
         # Initialize counters
         syn_count = 0
@@ -44,13 +47,18 @@ def parse_pcap(file_path):
             if len(packet_data) < incl_len:
                 continue
 
+            pkt = Packet_Data()
+            pkt.buffer = packet_data
+            pkt.packet_No_set(packet_no)
+            pkt.timestamp_set(struct.pack('I', ts_sec), struct.pack('I', ts_usec), start_time or ts_sec)
+
+            if start_time is 0:
+                start_time = pkt.timestamp
+
             # Reads the IP header
             ip_header = IP_Header()
             ip_header.get_IP(packet_data[26:30], packet_data[30:34])
             ip_header.get_header_len(packet_data[14:15])
-
-            source_ip = ip_header.src_ip
-            dest_ip = ip_header.dst_ip
 
             # Reads the TCP header
             tcp_header = TCP_Header()
@@ -59,8 +67,15 @@ def parse_pcap(file_path):
             tcp_header.get_data_offset(packet_data[46:47])
             tcp_header.get_flags(packet_data[47:48])
 
+            pkt.IP_header = ip_header
+            pkt.TCP_header = tcp_header
+
+            source_ip = ip_header.src_ip
+            dest_ip = ip_header.dst_ip
+
             source_port = tcp_header.src_port
             dest_port = tcp_header.dst_port
+
             data_offset = tcp_header.data_offset
             flags = tcp_header.flags
             data_length = incl_len - (14 + ip_header.ip_header_len + data_offset)
@@ -80,7 +95,12 @@ def parse_pcap(file_path):
             else:
                 status = f"S{syn_count}F{fin_count}"
 
-            connection_id = (source_ip, source_port, dest_ip, dest_port)
+
+            if (source_ip, source_port) < (dest_ip, dest_port):
+                connection_id = ((source_ip, source_port), (dest_ip, dest_port))
+            else:
+                connection_id = ((dest_ip, dest_port), (source_ip, source_port))
+
             if connection_id not in connections:
                 connections[connection_id] = Connection(source_ip, source_port, dest_ip, dest_port, timestamp, status)
 
@@ -91,6 +111,8 @@ def parse_pcap(file_path):
 
             connection = connections[connection_id]
             connection.record_packet(source_ip, dest_ip, data_length, timestamp, status)
+
+            packet_no += 1
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

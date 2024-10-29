@@ -52,7 +52,7 @@ def parse_pcap(file_path):
             pkt.packet_No_set(packet_no)
             pkt.timestamp_set(struct.pack('I', ts_sec), struct.pack('I', ts_usec), start_time or ts_sec)
 
-            if start_time is 0:
+            if start_time == 0:
                 start_time = pkt.timestamp
 
             # Reads the IP header
@@ -102,7 +102,7 @@ def parse_pcap(file_path):
                 connection_id = ((dest_ip, dest_port), (source_ip, source_port))
 
             if connection_id not in connections:
-                connections[connection_id] = Connection(source_ip, source_port, dest_ip, dest_port, timestamp, status)
+                connections[connection_id] = Connection(source_ip, source_port, dest_ip, dest_port, timestamp, syn_count, fin_count, rst_flag)
 
                 #Resetting the syn_count, fin_count, and rst_flag whenever a new packet header is detected
                 syn_count = 0
@@ -110,7 +110,7 @@ def parse_pcap(file_path):
                 rst_flag = False
 
             connection = connections[connection_id]
-            connection.record_packet(source_ip, dest_ip, data_length, timestamp, status)
+            connection.record_packet(source_ip, dest_ip, data_length, timestamp, syn_count, fin_count, rst_flag)
 
             packet_no += 1
 

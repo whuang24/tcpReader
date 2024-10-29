@@ -188,22 +188,26 @@ class Packet_Data():
         self.RTT_value = round(rtt,8)
 
 class Connection:
-    def __init__(self, src_ip, src_port, dst_ip, dst_port, timestamp, status):
+    def __init__(self, src_ip, src_port, dst_ip, dst_port, timestamp, status, syn_count, fin_count, rst_flag):
         self.src_ip = src_ip
         self.dst_ip = dst_ip
         self.src_port = src_port
         self.dst_port = dst_port
-        self.status = status
         self.start_time = timestamp
         self.end_time = None
         self.packets_src_to_dst = 0
         self.packets_dst_to_src = 0
         self.data_src_to_dst = 0
         self.data_dst_to_src = 0
+        self.syn_count = syn_count
+        self.fin_count = fin_count
+        self.rst_flag = rst_flag
 
-    def record_packet(self, src_ip, dst_ip, data_length, timestamp, status):
+    def record_packet(self, src_ip, dst_ip, data_length, timestamp, syn_count, fin_count, rst_flag):
         self.end_time = timestamp
-        self.status = status
+        self.syn_count = syn_count
+        self.fin_count = fin_count
+        self.rst_flag = rst_flag
         if src_ip == self.src_ip and dst_ip == self.dst_ip:
             self.packets_src_to_dst += 1
             self.data_src_to_dst += data_length
@@ -212,13 +216,18 @@ class Connection:
             self.data_dst_to_src += data_length
 
     def generate_report(self, conn_id):
-        if "R" in self.status:
+        if self.rst_flag:
+            status = f"S{self.syn_count}F{self.fin_count}/R"
+        else:
+            status = f"S{self.syn_count}F{self.fin_count}"
+
+        if self.fin_count == 0:
             return (f"Connection {conn_id}:\n"
                         f"Source Address: {self.src_ip}\n"
                         f"Destination Address: {self.dst_ip}\n"
                         f"Source Port: {self.src_port}\n"
                         f"Destination Port: {self.dst_port}\n"
-                        f"Status: {self.status}\nEND\n"
+                        f"Status: {status}"
                         f"++++++++++++++++++++++++++++++++")
         if self.start_time and self.end_time:
             duration = round(self.end_time - self.start_time, 6)
@@ -229,7 +238,7 @@ class Connection:
                     f"Destination Address: {self.dst_ip}\n"
                     f"Source Port: {self.src_port}\n"
                     f"Destination Port: {self.dst_port}\n"
-                    f"Status: {self.status}\n"
+                    f"Status: {status}\n"
                     f"Start Time: {self.start_time}\n"
                     f"End Time: {self.end_time}\n"
                     f"Duration: {duration} seconds\n"

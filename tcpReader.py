@@ -22,11 +22,6 @@ def parse_pcap(file_path):
         
         packet_no = 0
         start_time = 0
-
-        # Initialize counters
-        syn_count = 0
-        fin_count = 0
-        rst_flag = False
         
         # Extract packets
         while True:
@@ -81,19 +76,13 @@ def parse_pcap(file_path):
             data_length = incl_len - (14 + ip_header.ip_header_len + data_offset)
 
             if flags["SYN"]:
-                syn_count += 1
+                syn = True
 
             if flags["FIN"]: 
-                fin_count += 1
+                fin = True
             
             if flags["RST"]:
                 rst_flag = True
-                continue
-        
-            if rst_flag:
-                status = f"S{syn_count}F{fin_count}/R"
-            else:
-                status = f"S{syn_count}F{fin_count}"
 
 
             if (source_ip, source_port) < (dest_ip, dest_port):
@@ -102,15 +91,10 @@ def parse_pcap(file_path):
                 connection_id = ((dest_ip, dest_port), (source_ip, source_port))
 
             if connection_id not in connections:
-                connections[connection_id] = Connection(source_ip, source_port, dest_ip, dest_port, timestamp, syn_count, fin_count, rst_flag)
-
-                #Resetting the syn_count, fin_count, and rst_flag whenever a new packet header is detected
-                syn_count = 0
-                fin_count = 0
-                rst_flag = False
+                connections[connection_id] = Connection(source_ip, source_port, dest_ip, dest_port, timestamp)
 
             connection = connections[connection_id]
-            connection.record_packet(source_ip, dest_ip, data_length, timestamp, syn_count, fin_count, rst_flag)
+            connection.record_packet(source_ip, dest_ip, data_length, timestamp, syn, fin, rst_flag)
 
             packet_no += 1
 

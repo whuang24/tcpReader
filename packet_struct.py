@@ -227,7 +227,7 @@ class Connection:
                         f"Destination Address: {self.dst_ip}\n"
                         f"Source Port: {self.src_port}\n"
                         f"Destination Port: {self.dst_port}\n"
-                        f"Status: {status}"
+                        f"Status: {status}\n"
                         f"++++++++++++++++++++++++++++++++")
         if self.start_time and self.end_time:
             duration = round(self.end_time - self.start_time, 6)

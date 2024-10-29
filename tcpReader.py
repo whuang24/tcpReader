@@ -41,6 +41,11 @@ def parse_pcap(file_path):
             ts_sec, ts_usec, incl_len, orig_len = struct.unpack(ordering + 'IIII', packet_header)
             timestamp = ts_sec + ts_usec * 1e-6
 
+            if start_time == 0:
+                start_time = timestamp
+            
+            timestamp -= start_time
+
             # Reads the packet data
             packet_data = f.read(incl_len)
             if len(packet_data) < incl_len:
@@ -51,8 +56,7 @@ def parse_pcap(file_path):
             pkt.packet_No_set(packet_no)
             pkt.timestamp_set(struct.pack('I', ts_sec), struct.pack('I', ts_usec), start_time or ts_sec)
 
-            if start_time == 0:
-                start_time = pkt.timestamp
+            
 
             # Reads the IP header
             ip_header = IP_Header()

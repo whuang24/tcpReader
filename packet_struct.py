@@ -188,13 +188,27 @@ class Packet_Data():
         self.RTT_value = round(rtt,8)
 
 class Connection:
+    src_ip = 0
+    dst_ip = 0
+    src_port = 0
+    dst_port = 0
+    start_time = 0
+    end_time = 0
+    packets_src_to_dst = 0
+    packets_dst_to_src = 0
+    data_src_to_dst = 0
+    data_dst_to_src = 0
+    syn_count = 0
+    fin_count = 0
+    rst_flag = False
+    
     def __init__(self, src_ip, src_port, dst_ip, dst_port, timestamp):
         self.src_ip = src_ip
         self.dst_ip = dst_ip
         self.src_port = src_port
         self.dst_port = dst_port
         self.start_time = timestamp
-        self.end_time = None
+        self.end_time = timestamp
         self.packets_src_to_dst = 0
         self.packets_dst_to_src = 0
         self.data_src_to_dst = 0
@@ -211,10 +225,9 @@ class Connection:
         if fin:
             self.fin_count += 1
 
-        if rst_flag:
-            self.rst_flag = True
+        if self.rst_flag != True:
+            self.rst_flag = rst_flag
 
-        self.rst_flag = rst_flag
         if src_ip == self.src_ip and dst_ip == self.dst_ip:
             self.packets_src_to_dst += 1
             self.data_src_to_dst += data_length
@@ -236,7 +249,7 @@ class Connection:
                         f"Destination Port: {self.dst_port}\n"
                         f"Status: {status}\n"
                         f"++++++++++++++++++++++++++++++++")
-        if self.start_time and self.end_time:
+        else:
             duration = round(self.end_time - self.start_time, 6)
             total_packets = self.packets_src_to_dst + self.packets_dst_to_src
             total_data = self.data_src_to_dst + self.data_dst_to_src

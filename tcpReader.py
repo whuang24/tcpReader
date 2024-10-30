@@ -39,24 +39,19 @@ def parse_pcap(file_path):
                 continue
             
             ts_sec, ts_usec, incl_len, orig_len = struct.unpack(ordering + 'IIII', packet_header)
-            timestamp = ts_sec + ts_usec * 1e-6
-
-            if start_time == 0:
-                start_time = timestamp
-            
-            timestamp -= start_time
 
             # Reads the packet data
             packet_data = f.read(incl_len)
             if len(packet_data) < incl_len:
                 continue
 
+            if start_time == 0:
+                start_time = ts_sec + ts_usec * 1e-6
+
             pkt = Packet_Data()
             pkt.buffer = packet_data
             pkt.packet_No_set(packet_no)
-            pkt.timestamp_set(struct.pack('I', ts_sec), struct.pack('I', ts_usec), start_time or ts_sec)
-
-            
+            pkt.timestamp_set(struct.pack('I', ts_sec), struct.pack('I', ts_usec), start_time)
 
             # Reads the IP header
             ip_header = IP_Header()
@@ -99,10 +94,10 @@ def parse_pcap(file_path):
                 connection_id = ((dest_ip, dest_port), (source_ip, source_port))
 
             if connection_id not in connections:
-                connections[connection_id] = Connection(source_ip, source_port, dest_ip, dest_port, timestamp)
+                connections[connection_id] = Connection(source_ip, source_port, dest_ip, dest_port, pkt.timestamp)
 
             connection = connections[connection_id]
-            connection.record_packet(source_ip, dest_ip, data_length, timestamp, syn, fin, rst_flag)
+            connection.record_packet(source_ip, dest_ip, data_length, pkt.timestamp, syn, fin, rst_flag)
 
             packet_no += 1
 
@@ -114,20 +109,29 @@ if __name__ == "__main__":
     capFile = sys.argv[1]
     packets = parse_pcap(capFile)
 
-    total_string = f"A) Total number of connections: {len(connections)}"
+    complete_connections = 0
+    reset_connections = 0
+    unclosed_connections = 0
 
     separator = "________________________________________________\n"
 
-    connection_details_string = "B) Connection's details\n"
-
-    general_string = f"C) General\n"
-
-    print(total_string)
+    print(f"A) Total number of connections: {len(connections)}")
     print(separator)
-    print(connection_details_string)
+    print("B) Connection's details\n")
 
     for i, (conn_id, connection) in enumerate(connections.items(), 1):
+        if connection.rst_flag:
+            reset_connections += 1
+        
+        if connection.fin_count == 0:
+            unclosed_connections += 1
+        else:
+            complete_connections += 1
+
         print(connection.generate_report(i))
 
     print(separator)
-    print(general_string)
+    print(f"C) General\n")
+    print(f"Total number of complete TCP connections: {complete_connections}")
+    print(f"Number of reset TCP connections: {reset_connections}")
+    print(f"Number of TCP connections that were still open when the trace capture ended: {unclosed_connections}")

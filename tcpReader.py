@@ -28,6 +28,7 @@ def parse_pcap(file_path):
             syn = False
             fin = False
             rst_flag = False
+            not_ack = False
             
             # Reads the packet header, and ends checking if the packet_header does not exist
             packet_header = f.read(16)
@@ -78,26 +79,16 @@ def parse_pcap(file_path):
             flags = tcp_header.flags
             data_length = incl_len - (14 + ip_header.ip_header_len + data_offset)
 
-            if flags["SYN"]:
-                syn = True
-
-            if flags["FIN"]: 
-                fin = True
-            
-            if flags["RST"]:
-                rst_flag = True
-
-
             if (source_ip, source_port) < (dest_ip, dest_port):
                 connection_id = ((source_ip, source_port), (dest_ip, dest_port))
             else:
                 connection_id = ((dest_ip, dest_port), (source_ip, source_port))
 
             if connection_id not in connections:
-                connections[connection_id] = Connection(source_ip, source_port, dest_ip, dest_port, pkt.timestamp, syn)
+                connections[connection_id] = Connection(pkt)
 
             connection = connections[connection_id]
-            connection.record_packet(source_ip, dest_ip, data_length, pkt.timestamp, syn, fin, rst_flag)
+            connection.record_packet(data_length, pkt)
 
             packet_no += 1
 
@@ -139,15 +130,22 @@ if __name__ == "__main__":
             unclosed_connections += 1
         else:
             complete_connections += 1
+            time_durations.append(round(connection.end_time - connection.start_time, 6))
+            # rtt_values.append()
 
-        time_durations.append(round(connection.end_time - connection.start_time, 6))
+        
 
         print(connection.generate_report(i))
 
     print(separator)
-    print(f"C) General\n")
-    print(f"Total number of complete TCP connections: {complete_connections}")
+    print("C) General\n")
     print(f"Number of reset TCP connections: {reset_connections}")
-    print(f"Number of TCP connections that were established before the trace capture started: {preestablished_connections}")
     print(f"Number of TCP connections that were still open when the trace capture ended: {unclosed_connections}")
+    print(f"Number of TCP connections that were established before the trace capture started: {preestablished_connections}")
+    print(f"Total number of complete TCP connections: {complete_connections}")
     print(separator)
+    print("D) Complete TCP connections")
+
+
+
+

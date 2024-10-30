@@ -187,6 +187,7 @@ class Packet_Data():
         rtt = p.timestamp-self.timestamp
         self.RTT_value = round(rtt,8)
 
+
 class Connection:
     src_ip = 0
     dst_ip = 0
@@ -202,33 +203,33 @@ class Connection:
     fin_count = 0
     rst_flag = False
     is_preestablished = False
+    packets = []
+    rtts = []
     
-    def __init__(self, src_ip, src_port, dst_ip, dst_port, timestamp, syn_flag):
-        self.src_ip = src_ip
-        self.dst_ip = dst_ip
-        self.src_port = src_port
-        self.dst_port = dst_port
-        self.start_time = timestamp
-        self.end_time = timestamp
-        self.packets_src_to_dst = 0
-        self.packets_dst_to_src = 0
-        self.data_src_to_dst = 0
-        self.data_dst_to_src = 0
-        self.syn_count = 0
-        self.fin_count = 0
-        self.rst_flag = False
-        self.is_preestablished = not syn_flag
+    def __init__(self, pkt):
+        self.src_ip = pkt.IP_header.src_ip
+        self.dst_ip = pkt.IP_header.dst_ip
+        self.src_port = pkt.TCP_header.src_port
+        self.dst_port = pkt.TCP_header.dst_port
+        self.start_time = pkt.timestamp
+        self.end_time = pkt.timestamp
+        self.is_preestablished = not pkt.TCP_header.flags["SYN"]
+        self.packets.append(pkt)
 
-    def record_packet(self, src_ip, dst_ip, data_length, timestamp, syn, fin, rst_flag):
-        self.end_time = timestamp
-        if syn:
+    def record_packet(self, data_length, pkt):
+        src_ip = pkt.IP_header.src_ip
+        dst_ip = pkt.IP_header.dst_ip
+
+        self.end_time = pkt.timestamp
+
+        if pkt.TCP_header.flags["SYN"]:
             self.syn_count += 1
-        
-        if fin:
+            
+        if pkt.TCP_header.flags["FIN"]:
             self.fin_count += 1
 
         if self.rst_flag != True:
-            self.rst_flag = rst_flag
+            self.rst_flag = pkt.TCP_header.flags["RST"]
 
         if src_ip == self.src_ip and dst_ip == self.dst_ip:
             self.packets_src_to_dst += 1
@@ -236,6 +237,15 @@ class Connection:
         elif src_ip == self.dst_ip and dst_ip == self.src_ip:
             self.packets_dst_to_src += 1
             self.data_dst_to_src += data_length
+
+        self.packets.append(pkt)
+
+        if pkt.TCP_header.flags["ACK"]:
+            for packet in self.packets:
+                if packet.TCP_header.seq_num == pkt.TCP_header.ack_num:
+                    rtt = pkt.get_RTT_value(packet)
+                    self.rtts.append(rtt)
+
 
     def generate_report(self, conn_id):
         if self.rst_flag:

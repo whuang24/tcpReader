@@ -94,7 +94,7 @@ def parse_pcap(file_path):
                 connection_id = ((dest_ip, dest_port), (source_ip, source_port))
 
             if connection_id not in connections:
-                connections[connection_id] = Connection(source_ip, source_port, dest_ip, dest_port, pkt.timestamp)
+                connections[connection_id] = Connection(source_ip, source_port, dest_ip, dest_port, pkt.timestamp, syn)
 
             connection = connections[connection_id]
             connection.record_packet(source_ip, dest_ip, data_length, pkt.timestamp, syn, fin, rst_flag)
@@ -112,6 +112,15 @@ if __name__ == "__main__":
     complete_connections = 0
     reset_connections = 0
     unclosed_connections = 0
+    preestablished_connections = 0
+
+    time_durations = []
+
+    rtt_values = []
+
+    number_of_packets = []
+
+    window_sizes = []
 
     separator = "________________________________________________\n"
 
@@ -123,10 +132,15 @@ if __name__ == "__main__":
         if connection.rst_flag:
             reset_connections += 1
         
+        if connection.is_preestablished:
+            preestablished_connections += 1
+        
         if connection.fin_count == 0:
             unclosed_connections += 1
         else:
             complete_connections += 1
+
+        time_durations.append(round(connection.end_time - connection.start_time, 6))
 
         print(connection.generate_report(i))
 
@@ -134,4 +148,6 @@ if __name__ == "__main__":
     print(f"C) General\n")
     print(f"Total number of complete TCP connections: {complete_connections}")
     print(f"Number of reset TCP connections: {reset_connections}")
+    print(f"Number of TCP connections that were established before the trace capture started: {preestablished_connections}")
     print(f"Number of TCP connections that were still open when the trace capture ended: {unclosed_connections}")
+    print(separator)

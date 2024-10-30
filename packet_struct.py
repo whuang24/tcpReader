@@ -201,8 +201,9 @@ class Connection:
     syn_count = 0
     fin_count = 0
     rst_flag = False
+    is_preestablished = False
     
-    def __init__(self, src_ip, src_port, dst_ip, dst_port, timestamp):
+    def __init__(self, src_ip, src_port, dst_ip, dst_port, timestamp, syn_flag):
         self.src_ip = src_ip
         self.dst_ip = dst_ip
         self.src_port = src_port
@@ -216,6 +217,7 @@ class Connection:
         self.syn_count = 0
         self.fin_count = 0
         self.rst_flag = False
+        self.is_preestablished = not syn_flag
 
     def record_packet(self, src_ip, dst_ip, data_length, timestamp, syn, fin, rst_flag):
         self.end_time = timestamp

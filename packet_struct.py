@@ -189,22 +189,7 @@ class Packet_Data():
 
 
 class Connection:
-    src_ip = 0
-    dst_ip = 0
-    src_port = 0
-    dst_port = 0
-    start_time = 0
-    end_time = 0
-    packets_src_to_dst = 0
-    packets_dst_to_src = 0
-    data_src_to_dst = 0
-    data_dst_to_src = 0
-    syn_count = 0
-    fin_count = 0
-    rst_flag = False
-    is_preestablished = False
-    packets = []
-    rtts = []
+    
     
     def __init__(self, pkt):
         self.src_ip = pkt.IP_header.src_ip
@@ -213,8 +198,19 @@ class Connection:
         self.dst_port = pkt.TCP_header.dst_port
         self.start_time = pkt.timestamp
         self.end_time = pkt.timestamp
+        self.packets_src_to_dst = 0
+        self.packets_dst_to_src = 0
+        self.data_src_to_dst = 0
+        self.data_dst_to_src = 0
+        self.syn_count = 0
+        self.fin_count = 0
+        self.rst_flag = False
         self.is_preestablished = not pkt.TCP_header.flags["SYN"]
+        self.packets = []
+        self.rtts = []
+        self.windows = []
         self.packets.append(pkt)
+        self.windows.append(pkt.TCP_header.window_size)
 
     def record_packet(self, data_length, pkt):
         src_ip = pkt.IP_header.src_ip
@@ -224,6 +220,7 @@ class Connection:
 
         if pkt.TCP_header.flags["SYN"]:
             self.syn_count += 1
+            self.expect_ack_packet = pkt
             
         if pkt.TCP_header.flags["FIN"]:
             self.fin_count += 1
@@ -238,13 +235,18 @@ class Connection:
             self.packets_dst_to_src += 1
             self.data_dst_to_src += data_length
 
-        self.packets.append(pkt)
-
         if pkt.TCP_header.flags["ACK"]:
             for packet in self.packets:
-                if packet.TCP_header.seq_num == pkt.TCP_header.ack_num:
-                    rtt = pkt.get_RTT_value(packet)
-                    self.rtts.append(rtt)
+                if (packet.TCP_header.seq_num + data_length) == pkt.TCP_header.ack_num:
+                    packet.get_RTT_value(pkt)
+                    self.rtts.append(packet.RTT_value)
+                    break
+                
+        self.packets.append(pkt)
+
+        self.windows.append(pkt.TCP_header.window_size)
+
+        
 
 
     def generate_report(self, conn_id):

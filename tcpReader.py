@@ -25,11 +25,6 @@ def parse_pcap(file_path):
         
         # Extract packets
         while True:
-            syn = False
-            fin = False
-            rst_flag = False
-            not_ack = False
-            
             # Reads the packet header, and ends checking if the packet_header does not exist
             packet_header = f.read(16)
             if not packet_header:
@@ -54,17 +49,28 @@ def parse_pcap(file_path):
             pkt.packet_No_set(packet_no)
             pkt.timestamp_set(struct.pack('I', ts_sec), struct.pack('I', ts_usec), start_time)
 
+            ethernet_offset = 14
+
+            ip_data = packet_data[ethernet_offset:]
+
             # Reads the IP header
             ip_header = IP_Header()
-            ip_header.get_IP(packet_data[26:30], packet_data[30:34])
-            ip_header.get_header_len(packet_data[14:15])
+            ip_header.get_IP(ip_data[12:16], ip_data[16:20])
+            ip_header.get_header_len(bytes([ip_data[0] & 0x0F]))
+
+            ip_header_offset = ip_header.ip_header_len
+
+            tcp_data = packet_data[(ethernet_offset + ip_header_offset):]
 
             # Reads the TCP header
             tcp_header = TCP_Header()
-            tcp_header.get_src_port(packet_data[34:36])
-            tcp_header.get_dst_port(packet_data[36:38])
-            tcp_header.get_data_offset(packet_data[46:47])
-            tcp_header.get_flags(packet_data[47:48])
+            tcp_header.get_src_port(tcp_data[0:2])
+            tcp_header.get_dst_port(tcp_data[2:4])
+            tcp_header.get_seq_num(tcp_data[4:8])
+            tcp_header.get_ack_num(tcp_data[8:12])
+            tcp_header.get_data_offset(tcp_data[12:13])
+            tcp_header.get_flags(tcp_data[13:14])
+            tcp_header.get_window_size(tcp_data[14:15], tcp_data[15:16])
 
             pkt.IP_header = ip_header
             pkt.TCP_header = tcp_header
@@ -76,7 +82,7 @@ def parse_pcap(file_path):
             dest_port = tcp_header.dst_port
 
             data_offset = tcp_header.data_offset
-            flags = tcp_header.flags
+            
             data_length = incl_len - (14 + ip_header.ip_header_len + data_offset)
 
             if (source_ip, source_port) < (dest_ip, dest_port):
@@ -131,20 +137,40 @@ if __name__ == "__main__":
         else:
             complete_connections += 1
             time_durations.append(round(connection.end_time - connection.start_time, 6))
-            # rtt_values.append()
 
-        
+            rtt_values.extend(connection.rtts)
+            
+            number_of_packets.append(len(connection.packets))
+
+            window_sizes.extend(connection.windows)
 
         print(connection.generate_report(i))
 
-    print(separator)
-    print("C) General\n")
-    print(f"Number of reset TCP connections: {reset_connections}")
-    print(f"Number of TCP connections that were still open when the trace capture ended: {unclosed_connections}")
-    print(f"Number of TCP connections that were established before the trace capture started: {preestablished_connections}")
-    print(f"Total number of complete TCP connections: {complete_connections}")
-    print(separator)
-    print("D) Complete TCP connections")
+    # print(separator)
+    # print("C) General\n")
+    # print(f"Number of reset TCP connections: {reset_connections}")
+    # print(f"Number of TCP connections that were still open when the trace capture ended: {unclosed_connections}")
+    # print(f"Number of TCP connections that were established before the trace capture started: {preestablished_connections}")
+    # print(f"Total number of complete TCP connections: {complete_connections}")
+    # print(separator)
+    # print("D) Complete TCP connections")
+    # print(len(time_durations))
+    print(rtt_values)
+    # print(len(number_of_packets))
+    # print(len(window_sizes))
+    # print(f"Minimum time duration: {min(time_durations)} seconds\n"
+    #       f"Mean time duration: {sum(time_durations)/len(time_durations)} seconds\n"
+    #       f"Maximum time duration: {max(time_durations)} seconds\n\n"
+    #       f"Minimum RTT value: {min(rtt_values)}\n"
+    #       f"Mean RTT value: {sum(rtt_values)/len(rtt_values)}\n"
+    #       f"Maximum RTT value: {max(rtt_values)}\n\n"
+    #       f"Minimum number of packets including both send/received: {min(number_of_packets)}\n"
+    #       f"Mean number of packets including both send/received: {sum(number_of_packets)/len(number_of_packets)}\n"
+    #       f"Maximum number of packets including both send/received: {max(number_of_packets)}\n\n"
+    #       f"Minimum receive window size including both send/received: {min(window_sizes)} bytes\n"
+    #       f"Mean receive window size including both send/received: {sum(window_sizes)/len(window_sizes)} bytes\n"
+    #       f"Maximum receive window size including both send/received: {max(window_sizes)} bytes")
+    # print(separator)
 
 
 

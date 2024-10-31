@@ -162,6 +162,7 @@ class Packet_Data():
     RTT_value = 0
     RTT_flag = False
     buffer = None
+    tcp_segment = 0
     
     
     def __init__(self):
@@ -173,6 +174,7 @@ class Packet_Data():
         self.RTT_value = 0.0
         self.RTT_flag = False
         self.buffer = None
+        self.tcp_segment = 0
         
     def timestamp_set(self,buffer1,buffer2,orig_time):
         seconds = struct.unpack('I',buffer1)[0]
@@ -186,6 +188,9 @@ class Packet_Data():
     def get_RTT_value(self,p):
         rtt = p.timestamp-self.timestamp
         self.RTT_value = round(rtt,8)
+
+    def get_TCP_segment(self, segment):
+        self.tcp_segment = segment
 
 
 class Connection:
@@ -209,10 +214,8 @@ class Connection:
         self.packets = []
         self.rtts = []
         self.windows = []
-        self.packets.append(pkt)
-        self.windows.append(pkt.TCP_header.window_size)
 
-    def record_packet(self, data_length, pkt):
+    def record_packet(self, pkt):
         src_ip = pkt.IP_header.src_ip
         dst_ip = pkt.IP_header.dst_ip
 
@@ -220,7 +223,6 @@ class Connection:
 
         if pkt.TCP_header.flags["SYN"]:
             self.syn_count += 1
-            self.expect_ack_packet = pkt
             
         if pkt.TCP_header.flags["FIN"]:
             self.fin_count += 1
@@ -230,18 +232,18 @@ class Connection:
 
         if src_ip == self.src_ip and dst_ip == self.dst_ip:
             self.packets_src_to_dst += 1
-            self.data_src_to_dst += data_length
+            self.data_src_to_dst += pkt.tcp_segment
         elif src_ip == self.dst_ip and dst_ip == self.src_ip:
             self.packets_dst_to_src += 1
-            self.data_dst_to_src += data_length
+            self.data_dst_to_src += pkt.tcp_segment
 
         if pkt.TCP_header.flags["ACK"]:
             for packet in self.packets:
-                if (packet.TCP_header.seq_num + data_length) == pkt.TCP_header.ack_num:
+                if (packet.TCP_header.seq_num + packet.tcp_segment) == pkt.TCP_header.ack_num:
                     packet.get_RTT_value(pkt)
                     self.rtts.append(packet.RTT_value)
                     break
-                
+
         self.packets.append(pkt)
 
         self.windows.append(pkt.TCP_header.window_size)

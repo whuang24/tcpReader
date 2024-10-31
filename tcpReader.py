@@ -83,7 +83,9 @@ def parse_pcap(file_path):
 
             data_offset = tcp_header.data_offset
             
-            data_length = incl_len - (14 + ip_header.ip_header_len + data_offset)
+            tcp_segment_len = incl_len - (14 + ip_header.ip_header_len + data_offset)
+
+            pkt.get_TCP_segment(tcp_segment_len)
 
             if (source_ip, source_port) < (dest_ip, dest_port):
                 connection_id = ((source_ip, source_port), (dest_ip, dest_port))
@@ -94,7 +96,7 @@ def parse_pcap(file_path):
                 connections[connection_id] = Connection(pkt)
 
             connection = connections[connection_id]
-            connection.record_packet(data_length, pkt)
+            connection.record_packet(pkt)
 
             packet_no += 1
 
@@ -144,33 +146,30 @@ if __name__ == "__main__":
 
             window_sizes.extend(connection.windows)
 
-        print(connection.generate_report(i))
+        # print(connection.generate_report(i))
 
-    # print(separator)
-    # print("C) General\n")
-    # print(f"Number of reset TCP connections: {reset_connections}")
-    # print(f"Number of TCP connections that were still open when the trace capture ended: {unclosed_connections}")
-    # print(f"Number of TCP connections that were established before the trace capture started: {preestablished_connections}")
-    # print(f"Total number of complete TCP connections: {complete_connections}")
-    # print(separator)
-    # print("D) Complete TCP connections")
-    # print(len(time_durations))
-    print(rtt_values)
-    # print(len(number_of_packets))
-    # print(len(window_sizes))
-    # print(f"Minimum time duration: {min(time_durations)} seconds\n"
-    #       f"Mean time duration: {sum(time_durations)/len(time_durations)} seconds\n"
-    #       f"Maximum time duration: {max(time_durations)} seconds\n\n"
-    #       f"Minimum RTT value: {min(rtt_values)}\n"
-    #       f"Mean RTT value: {sum(rtt_values)/len(rtt_values)}\n"
-    #       f"Maximum RTT value: {max(rtt_values)}\n\n"
-    #       f"Minimum number of packets including both send/received: {min(number_of_packets)}\n"
-    #       f"Mean number of packets including both send/received: {sum(number_of_packets)/len(number_of_packets)}\n"
-    #       f"Maximum number of packets including both send/received: {max(number_of_packets)}\n\n"
-    #       f"Minimum receive window size including both send/received: {min(window_sizes)} bytes\n"
-    #       f"Mean receive window size including both send/received: {sum(window_sizes)/len(window_sizes)} bytes\n"
-    #       f"Maximum receive window size including both send/received: {max(window_sizes)} bytes")
-    # print(separator)
+    print(separator)
+    print("C) General\n")
+    print(f"Number of reset TCP connections: {reset_connections}")
+    print(f"Number of TCP connections that were still open when the trace capture ended: {unclosed_connections}")
+    print(f"Number of TCP connections that were established before the trace capture started: {preestablished_connections}")
+    print(f"Total number of complete TCP connections: {complete_connections}")
+    print(separator)
+    print(len(rtt_values))
+    print("D) Complete TCP connections")
+    print(f"Minimum time duration: {min(time_durations)} seconds\n"
+          f"Mean time duration: {sum(time_durations)/len(time_durations)} seconds\n"
+          f"Maximum time duration: {max(time_durations)} seconds\n\n"
+          f"Minimum RTT value: {min(rtt_values)}\n"
+          f"Mean RTT value: {sum(rtt_values)/len(rtt_values)}\n"
+          f"Maximum RTT value: {max(rtt_values)}\n\n"
+          f"Minimum number of packets including both send/received: {min(number_of_packets)}\n"
+          f"Mean number of packets including both send/received: {sum(number_of_packets)/len(number_of_packets)}\n"
+          f"Maximum number of packets including both send/received: {max(number_of_packets)}\n\n"
+          f"Minimum receive window size including both send/received: {min(window_sizes)} bytes\n"
+          f"Mean receive window size including both send/received: {sum(window_sizes)/len(window_sizes)} bytes\n"
+          f"Maximum receive window size including both send/received: {max(window_sizes)} bytes")
+    print(separator)
 
 
 

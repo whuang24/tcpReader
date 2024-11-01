@@ -146,7 +146,7 @@ if __name__ == "__main__":
 
             window_sizes.extend(connection.windows)
 
-        # print(connection.generate_report(i))
+        print(connection.generate_report(i))
 
     print(separator)
     print("C) General\n")
@@ -155,7 +155,6 @@ if __name__ == "__main__":
     print(f"Number of TCP connections that were established before the trace capture started: {preestablished_connections}")
     print(f"Total number of complete TCP connections: {complete_connections}")
     print(separator)
-    print(len(rtt_values))
     print("D) Complete TCP connections")
     print(f"Minimum time duration: {min(time_durations)} seconds\n"
           f"Mean time duration: {sum(time_durations)/len(time_durations)} seconds\n"

@@ -123,7 +123,7 @@ if __name__ == "__main__":
 
     separator = "________________________________________________\n"
 
-    print(f"A) Total number of connections: {len(connections)}")
+    print("A) Total number of connections: " + str(len(connections)))
     print(separator)
     print("B) Connection's details\n")
 
@@ -150,24 +150,24 @@ if __name__ == "__main__":
 
     print(separator)
     print("C) General\n")
-    print(f"Number of reset TCP connections: {reset_connections}")
-    print(f"Number of TCP connections that were still open when the trace capture ended: {unclosed_connections}")
-    print(f"Number of TCP connections that were established before the trace capture started: {preestablished_connections}")
-    print(f"Total number of complete TCP connections: {complete_connections}")
+    print("Number of reset TCP connections: " + str(reset_connections))
+    print("Number of TCP connections that were still open when the trace capture ended: " + str(unclosed_connections))
+    print("Number of TCP connections that were established before the trace capture started: " + str(preestablished_connections))
+    print("Total number of complete TCP connections: " + str(complete_connections))
     print(separator)
     print("D) Complete TCP connections")
-    print(f"Minimum time duration: {min(time_durations)} seconds\n"
-          f"Mean time duration: {sum(time_durations)/len(time_durations)} seconds\n"
-          f"Maximum time duration: {max(time_durations)} seconds\n\n"
-          f"Minimum RTT value: {min(rtt_values)}\n"
-          f"Mean RTT value: {sum(rtt_values)/len(rtt_values)}\n"
-          f"Maximum RTT value: {max(rtt_values)}\n\n"
-          f"Minimum number of packets including both send/received: {min(number_of_packets)}\n"
-          f"Mean number of packets including both send/received: {sum(number_of_packets)/len(number_of_packets)}\n"
-          f"Maximum number of packets including both send/received: {max(number_of_packets)}\n\n"
-          f"Minimum receive window size including both send/received: {min(window_sizes)} bytes\n"
-          f"Mean receive window size including both send/received: {sum(window_sizes)/len(window_sizes)} bytes\n"
-          f"Maximum receive window size including both send/received: {max(window_sizes)} bytes")
+    print("Minimum time duration: " + str(min(time_durations)) + " seconds\n" +
+          "Mean time duration: " + str(sum(time_durations)/len(time_durations)) + " seconds\n" +
+          "Maximum time duration: " + str(max(time_durations)) + "seconds\n\n" +
+          "Minimum RTT value: " + str(min(rtt_values)) + "\n" +
+          "Mean RTT value: " + str(sum(rtt_values)/len(rtt_values)) + "\n" +
+          "Maximum RTT value: " + str(max(rtt_values)) + "\n\n" +
+          "Minimum number of packets including both send/received: " + str(min(number_of_packets)) + "\n" +
+          "Mean number of packets including both send/received: " + str(sum(number_of_packets)/len(number_of_packets)) + "\n" +
+          "Maximum number of packets including both send/received: " + str(max(number_of_packets)) + "\n\n" +
+          "Minimum receive window size including both send/received: " + str(min(window_sizes)) + " bytes\n" +
+          "Mean receive window size including both send/received: " + str(sum(window_sizes)/len(window_sizes)) + " bytes\n" +
+          "Maximum receive window size including both send/received: " + str(max(window_sizes)) + " bytes")
     print(separator)
 
 

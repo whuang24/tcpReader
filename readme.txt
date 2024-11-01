@@ -51,10 +51,10 @@ The following is a list of the limitations that the project currently contain
 
 Type inside the terminal
 ```
-python tcpReader.py <pcap file address>
+python3 tcpReader.py <pcap file address>
 ```
 
 Example
 ```
-python tcpReader.py sample-capture-file.cap 
+python3 tcpReader.py sample-capture-file.cap 
 ```

@@ -253,36 +253,36 @@ class Connection:
 
     def generate_report(self, conn_id):
         if self.rst_flag:
-            status = f"S{self.syn_count}F{self.fin_count}/R"
+            status = "S" + str(self.syn_count) + "F" + str(self.fin_count) + "/R"
         else:
-            status = f"S{self.syn_count}F{self.fin_count}"
+            status = "S" + str(self.syn_count) + "F" + str(self.fin_count)
 
         if self.fin_count == 0:
-            return (f"Connection {conn_id}:\n"
-                        f"Source Address: {self.src_ip}\n"
-                        f"Destination Address: {self.dst_ip}\n"
-                        f"Source Port: {self.src_port}\n"
-                        f"Destination Port: {self.dst_port}\n"
-                        f"Status: {status}\n"
-                        f"++++++++++++++++++++++++++++++++")
+            return ("Connection " + str(conn_id) + ":\n" +
+                        "Source Address: " + str(self.src_ip) + "\n" +
+                        "Destination Address: " + str(self.dst_ip) + "\n" +
+                        "Source Port: " + str(self.src_port) + "\n" +
+                        "Destination Port: " + str(self.dst_port) + "\n" +
+                        "Status: " + str(status) + "\n" +
+                        "++++++++++++++++++++++++++++++++")
         else:
             duration = round(self.end_time - self.start_time, 6)
             total_packets = self.packets_src_to_dst + self.packets_dst_to_src
             total_data = self.data_src_to_dst + self.data_dst_to_src
-            return (f"Connection {conn_id}:\n"
-                    f"Source Address: {self.src_ip}\n"
-                    f"Destination Address: {self.dst_ip}\n"
-                    f"Source Port: {self.src_port}\n"
-                    f"Destination Port: {self.dst_port}\n"
-                    f"Status: {status}\n"
-                    f"Start Time: {self.start_time}\n"
-                    f"End Time: {self.end_time}\n"
-                    f"Duration: {duration} seconds\n"
-                    f"Number of packets sent from Source to Destination: {self.packets_src_to_dst}\n"
-                    f"Number of packets sent from Destination to Source: {self.packets_dst_to_src}\n"
-                    f"Total number of packets: {total_packets}\n"
-                    f"Number of data bytes sent from Source to Destination: {self.data_src_to_dst}\n"
-                    f"Number of data bytes sent from Destination to Source: {self.data_dst_to_src}\n"
-                    f"Total number of data bytes: {total_data}\nEND\n"
-                    f"++++++++++++++++++++++++++++++++")
+            return ("Connection " + str(conn_id) + ":\n"
+                    "Source Address: " + str(self.src_ip) + "\n"
+                    "Destination Address: " + str(self.dst_ip) + "\n"
+                    "Source Port: " + str(self.src_port) + "\n"
+                    "Destination Port: " + str(self.dst_port) + "\n"
+                    "Status: " + str(status) + "\n"
+                    "Start Time: " + str(self.start_time) + "\n"
+                    "End Time: " + str(self.end_time) + "\n"
+                    "Duration: " + str(duration) + " seconds\n"
+                    "Number of packets sent from Source to Destination: " + str(self.packets_src_to_dst) + "\n"
+                    "Number of packets sent from Destination to Source: " + str(self.packets_dst_to_src) + "\n"
+                    "Total number of packets: " + str(total_packets) + "\n"
+                    "Number of data bytes sent from Source to Destination: " + str(self.data_src_to_dst) + "\n"
+                    "Number of data bytes sent from Destination to Source: " + str(self.data_dst_to_src) + "\n"
+                    "Total number of data bytes: " + str(total_data) + "\nEND\n"
+                    "++++++++++++++++++++++++++++++++")
             
